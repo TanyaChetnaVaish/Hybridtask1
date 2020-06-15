@@ -3,7 +3,9 @@ provider "aws" {
   region = "ap-south-1"
   profile = "mytanya1"
 }
-#Creating SECURITY GROUP
+
+
+#CREATING SECURITY GROUP
 resource "aws_security_group" "allow_tls" {
   name = "Security_01"
   description ="Allow SSH & HTTP inbound traffic"
@@ -33,7 +35,7 @@ tags = {
 }
 
 
-#CREATING INSTANCE
+#CREATING AWS INSTANCE
 resource "aws_instance" "tweb" {
 depends_on = [aws_security_group.allow_tls,
 ]
@@ -48,6 +50,7 @@ depends_on = [aws_security_group.allow_tls,
     private_key = file("C:/Users/TANYA/Downloads/mykey11.pem")
     host = aws_instance.tweb.public_ip
   }
+
 #DOWNLOADING DEPENDENCIES AND CONFIGURING WEBSERVER
   provisioner "remote-exec" {
     inline = [
@@ -62,7 +65,7 @@ depends_on = [aws_security_group.allow_tls,
 }
 
 
-#CREATING VOLUME
+#CREATING EBS VOLUME
 resource "aws_ebs_volume" "tebs" {
   availability_zone = aws_instance.tweb.availability_zone
   size = 1
@@ -78,6 +81,8 @@ resource "aws_volume_attachment" "tebs_att" {
   instance_id = "${aws_instance.tweb.id}"
   force_detach =true
 }
+
+
 #PRINTING SYSTEM IP
 output "myos_ip" {
   value = aws_instance.tweb.public_ip
@@ -87,6 +92,8 @@ resource "null_resource" "nulllocal2" {
              command = "echo ${aws_instance.tweb.public_ip} > publicip.txt"
        }
 }
+
+
 #MOUTNING VOLUME AND CREATING PARTITION ,ALSO COPYING CODE FROM GITHUB INTO /VAR/WWW/HTML LOCATION
 resource "null_resource" "nullremote3" {
 depends_on = [
@@ -117,7 +124,7 @@ enabled = true
 }
 }
 
-#ADDING OBJECT TO THE BUCKET
+#ADDING OBJECT TO THE BUCKET FROM OUR LOCAL SYSTEM
 resource "aws_s3_bucket_object" "bucketObject" {
 bucket = aws_s3_bucket.tanyab.bucket
 key = "download"
@@ -210,6 +217,8 @@ Environment = "production"
 viewer_certificate {
 cloudfront_default_certificate = true
 }
+
+
 #ADDING THE CLOUDFRONT URL TO THE INDEX.HTML FILE AND THUS RUNNING THE PAGE
 connection {
         type    = "ssh"
@@ -226,7 +235,7 @@ provisioner "remote-exec" {
             "EOF"
         ]
     }
-#Showing Website
+#SHOWING WEBSITE ON CHROME USINF IP OF INSTANCE
 provisioner "local-exec" {
 command = "start chrome ${aws_instance.tweb.public_ip}"
 }
