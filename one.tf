@@ -226,6 +226,7 @@ provisioner "remote-exec" {
             "EOF"
         ]
     }
+#Showing Website
 provisioner "local-exec" {
 command = "start chrome ${aws_instance.tweb.public_ip}"
 }
